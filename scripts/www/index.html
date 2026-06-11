@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零宽字符加密解密系统</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --border: #e0e0e6;
+    --text: #1d1d1f;
+    --text-secondary: #6e6e73;
+    --accent: #0071e3;
+    --accent-hover: #0077ed;
+    --danger: #ff3b30;
+    --success: #34c759;
+    --warning: #ff9500;
+    --tag-bg: #e8f0fe;
+    --tag-text: #1967d2;
+    --input-bg: #ffffff;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 24px rgba(0,0,0,0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 24px 0 32px;
+  }
+  .header .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #0071e3, #5ac8fa);
+    color: #fff;
+    font-size: 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(0,113,227,0.25);
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .header p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-top: 6px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 4px;
+    gap: 4px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 20px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .tab:hover { color: var(--text); background: rgba(0,0,0,0.03); }
+  .tab.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,113,227,0.3);
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Form elements */
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+    line-height: 1.6;
+    resize: vertical;
+    background: var(--input-bg);
+    color: var(--text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.1);
+  }
+  textarea.small { min-height: 60px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-xs);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 2px 8px rgba(0,113,227,0.3); }
+  .btn-secondary {
+    background: #f1f1f4;
+    color: var(--text);
+  }
+  .btn-secondary:hover { background: #e5e5ea; }
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text);
+  }
+  .btn-outline:hover { background: #f1f1f4; }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Output area */
+  .output-area {
+    position: relative;
+    background: #fafafa;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    min-height: 80px;
+    word-break: break-all;
+    font-family: "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    transition: border-color 0.2s;
+  }
+  .output-area.has-content {
+    border-style: solid;
+    border-color: var(--success);
+    color: var(--text);
+  }
+  .output-placeholder {
+    color: #c7c7cc;
+    font-style: italic;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+  }
+
+  /* Zero-width visualizer */
+  .zw-visual {
+    margin-top: 12px;
+    padding: 12px;
+    background: #fff3cd;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+    line-height: 1.8;
+    color: #856404;
+    display: none;
+  }
+  .zw-visual.show { display: block; }
+  .zw-char {
+    display: inline-block;
+    padding: 1px 4px;
+    margin: 0 1px;
+    border-radius: 3px;
+    font-size: 11px;
+    background: rgba(0,0,0,0.08);
+  }
+
+  /* Stats */
+  .stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .stat-value {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .stat-dot.hidden { background: var(--warning); }
+  .stat-dot.visible { background: var(--accent); }
+
+  /* Tag */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* Alert */
+  .alert {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  .alert-info { background: #e8f0fe; color: #174ea6; }
+  .alert-warning { background: #fef7e0; color: #b06000; }
+  .alert-success { background: #e6f4ea; color: #137333; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1d1d1f;
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .legend-code {
+    background: #f1f1f4;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: "SF Mono", monospace;
+    font-size: 11px;
+  }
+
+  .hidden-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .hidden-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--warning);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="icon">&#x1F575;</div>
+    <h1>零宽字符加密解密系统</h1>
+    <p>使用不可见 Unicode 字符隐藏秘密消息 &mdash; 完全本地运行，无需服务器</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('encrypt')">🔐 加密（隐藏消息）</button>
+    <button class="tab" onclick="switchTab('decrypt')">🔓 解密（提取消息）</button>
+  </div>
+
+  <!-- Encrypt Panel -->
+  <div id="panel-encrypt">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">嵌入载体文本</span>
+        <span class="tag">可选</span>
+      </div>
+      <textarea id="carrier-text" class="small" placeholder="输入一段正常的文本作为载体，秘密消息将被隐藏在其中。如果不填，只输出零宽字符密文。&#10;&#10;例如：今天天气真好，适合出去散步。"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">秘密消息</span>
+      </div>
+      <textarea id="secret-message" placeholder="输入你想要隐藏的秘密消息...&#10;&#10;例如：密码是123456，后天下午三点见面"></textarea>
+      <div class="btn-group" style="margin-top:12px;">
+        <button class="btn btn-primary" onclick="encrypt()">🔐 加密并隐藏</button>
+        <button class="btn btn-secondary" onclick="clearEncrypt()">清空</button>
+        <button class="btn btn-outline btn-sm" onclick="demoEncrypt()">填入演示数据</button>
+      </div>
+    </div>
+
+    <div class="card" id="encrypt-result-card" style="display:none;">
+      <div class="card-header">
+        <span class="card-title">加密结果</span>
+        <button class="btn btn-outline btn-sm" onclick="copyResult('encrypt-output')">📋 复制</button>
+      </div>
+      <div id="encrypt-output" class="output-area"></div>
+      <div id="encrypt-visual" class="zw-visual"></div>
+      <div id="encrypt-stats" class="stats"></div>
+    </div>
+  </div>
+
+  <!-- Decrypt Panel -->
+  <div id="panel-decrypt" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">待解密文本</span>
+        <span id="hidden-badge" class="tag hidden-indicator" style="display:none;">
+          <span class="hidden-dot"></span> 检测到隐藏字符
+        </span>
+      </div>
+      <textarea id="cipher-text" placeholder="粘贴包含零宽字符的文本，系统会自动检测并提取隐藏消息..."></textarea>
+      <div style="margin-top:8px; font-size:12px; color:var(--text-secondary);">
+        💡 提示：零宽字符肉眼不可见，但粘贴到此处即可被检测到
+      </div>
+      <div class="btn-group" style="margin-top:12px;">
+        <button class="btn btn-primary" onclick="decrypt()">🔓 提取隐藏消息</button>
+        <button class="btn btn-secondary" onclick="clearDecrypt()">清空</button>
+      </div>
+    </div>
+
+    <div class="card" id="decrypt-result-card" style="display:none;">
+      <div class="card-header">
+        <span class="card-title">提取结果</span>
+        <button class="btn btn-outline btn-sm" onclick="copyResult('decrypt-output')">📋 复制</button>
+      </div>
+      <div id="decrypt-output" class="output-area"></div>
+      <div id="decrypt-stats" class="stats"></div>
+    </div>
+  </div>
+
+  <!-- Info card -->
+  <div class="card" style="margin-top:24px;">
+    <div class="card-title" style="margin-bottom:12px;">&#x1F50D; 编码原理</div>
+    <p style="font-size:13px;color:var(--text-secondary);line-height:1.8;">
+      系统使用 4 种零宽 Unicode 字符来编码二进制数据，每个字符携带 2 比特信息：
+    </p>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-code">U+200B</span> 零宽空格 → 编码 00</div>
+      <div class="legend-item"><span class="legend-code">U+200C</span> 零宽非连接符 → 编码 01</div>
+      <div class="legend-item"><span class="legend-code">U+200D</span> 零宽连接符 → 编码 10</div>
+      <div class="legend-item"><span class="legend-code">U+FEFF</span> 零宽不间断空格 → 编码 11</div>
+    </div>
+    <p style="font-size:12px;color:var(--text-secondary);margin-top:12px;">
+      消息首先转为 UTF-8 字节序列，再转为二进制，每 2 位映射到一个零宽字符。消息前后以 <code style="background:#f1f1f4;padding:1px 4px;border-radius:3px;">U+2060</code>（词连接符）作为起止标记。
+      纯零宽字符密文可直接发送；也可嵌入到任意可见文本中，肉眼完全无法察觉。
+    </p>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+// === Zero-width character set ===
+const ZW_CHARS = {
+  '00': '\u200B', // Zero Width Space
+  '01': '\u200C', // Zero Width Non-Joiner
+  '10': '\u200D', // Zero Width Joiner
+  '11': '\uFEFF', // Zero Width No-Break Space
+};
+const ZW_MARKER = '\u2060'; // Word Joiner - used as delimiter
+const ALL_ZW = /[\u200B\u200C\u200D\uFEFF\u2060]/g;
+
+// === Utility functions ===
+function toBinary(str) {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  let binary = '';
+  for (const byte of bytes) {
+    binary += byte.toString(2).padStart(8, '0');
+  }
+  return binary;
+}
+
+function fromBinary(binary) {
+  const byteStrings = binary.match(/.{1,8}/g) || [];
+  const bytes = new Uint8Array(byteStrings.map(b => parseInt(b, 2)));
+  const decoder = new TextDecoder();
+  return decoder.decode(bytes);
+}
+
+function binaryToZW(binary) {
+  let result = '';
+  // Pad to even length
+  if (binary.length % 2 !== 0) binary += '0';
+  for (let i = 0; i < binary.length; i += 2) {
+    const pair = binary.substring(i, i + 2);
+    result += ZW_CHARS[pair];
+  }
+  return result;
+}
+
+function zwToBinary(zwStr) {
+  let binary = '';
+  for (const ch of zwStr) {
+    switch (ch) {
+      case '\u200B': binary += '00'; break;
+      case '\u200C': binary += '01'; break;
+      case '\u200D': binary += '10'; break;
+      case '\uFEFF': binary += '11'; break;
+      default: break; // skip non-ZW characters
+    }
+  }
+  return binary;
+}
+
+function extractZW(str) {
+  const matches = str.match(/[\u200B\u200C\u200D\uFEFF\u2060]/g);
+  return matches ? matches.join('') : '';
+}
+
+// === Encrypt ===
+function encrypt() {
+  const carrier = document.getElementById('carrier-text').value.trim();
+  const secret = document.getElementById('secret-message').value;
+
+  if (!secret) {
+    showToast('请输入秘密消息');
+    return;
+  }
+
+  const binary = toBinary(secret);
+  const zwPayload = ZW_MARKER + binaryToZW(binary) + ZW_MARKER;
+
+  let result;
+  if (carrier) {
+    // Insert at random position within the carrier
+    const pos = Math.floor(carrier.length / 2);
+    result = carrier.slice(0, pos) + zwPayload + carrier.slice(pos);
+  } else {
+    result = zwPayload;
+  }
+
+  // Display result
+  const resultCard = document.getElementById('encrypt-result-card');
+  const output = document.getElementById('encrypt-output');
+  const visual = document.getElementById('encrypt-visual');
+  const stats = document.getElementById('encrypt-stats');
+
+  resultCard.style.display = 'block';
+  output.innerHTML = escapeHTML(result);
+  output.className = 'output-area has-content';
+
+  // Visual representation
+  const zwCount = (zwPayload.match(ALL_ZW) || []).length;
+  const visualChars = [];
+  for (const ch of zwPayload) {
+    let label;
+    switch (ch) {
+      case '\u200B': label = '00'; break;
+      case '\u200C': label = '01'; break;
+      case '\u200D': label = '10'; break;
+      case '\uFEFF': label = '11'; break;
+      case '\u2060': label = '▸▸'; break;
+      default: label = ch;
+    }
+    visualChars.push(`<span class="zw-char">${label}</span>`);
+  }
+  visual.innerHTML = '零宽字符序列可视化：<br>' + visualChars.join('');
+  visual.className = 'zw-visual show';
+
+  stats.innerHTML = `
+    <div class="stat">
+      <span class="stat-dot hidden"></span>
+      零宽字符数：<span class="stat-value">${zwCount}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-dot visible"></span>
+      可见字符数：<span class="stat-value">${carrier ? result.length - zwCount : 0}</span>
+    </div>
+    <div class="stat">
+      📦
+      消息字节数：<span class="stat-value">${new TextEncoder().encode(secret).length}</span>
+    </div>
+    <div class="stat">
+      📐
+      总长度：<span class="stat-value">${result.length}</span>
+    </div>
+  `;
+
+  // Scroll to result
+  resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  if (!carrier) {
+    showToast('纯零宽密文已生成，可复制发送');
+  } else {
+    showToast('消息已嵌入载体文本');
+  }
+}
+
+// === Decrypt ===
+function decrypt() {
+  const cipher = document.getElementById('cipher-text').value;
+
+  if (!cipher) {
+    showToast('请粘贴待解密的文本');
+    return;
+  }
+
+  const allZW = extractZW(cipher);
+  if (!allZW) {
+    showToast('未检测到零宽字符，该文本不包含隐藏消息');
+    return;
+  }
+
+  // Find content between markers
+  const markerRegex = /\u2060([\u200B\u200C\u200D\uFEFF]+)\u2060/g;
+  const resultCard = document.getElementById('decrypt-result-card');
+  const output = document.getElementById('decrypt-output');
+  const stats = document.getElementById('decrypt-stats');
+
+  resultCard.style.display = 'block';
+
+  const messages = [];
+  let match;
+  while ((match = markerRegex.exec(cipher)) !== null) {
+    const zwContent = match[1];
+    const binary = zwToBinary(zwContent);
+    try {
+      const decoded = fromBinary(binary);
+      if (decoded) messages.push(decoded);
+    } catch (e) {
+      // skip invalid segments
+    }
+  }
+
+  // Fallback: if no markers found, try decoding all ZW chars
+  if (messages.length === 0) {
+    const payloadZW = allZW.replace(/\u2060/g, '');
+    const binary = zwToBinary(payloadZW);
+    try {
+      const decoded = fromBinary(binary);
+      if (decoded) messages.push(decoded);
+    } catch (e) {}
+  }
+
+  if (messages.length === 0) {
+    output.innerHTML = '<span class="output-placeholder">未能提取有效消息，零宽字符可能存在但格式不正确</span>';
+    output.className = 'output-area';
+  } else if (messages.length === 1) {
+    output.textContent = messages[0];
+    output.className = 'output-area has-content';
+  } else {
+    output.innerHTML = messages.map((m, i) => `<div style="margin-bottom:8px;"><strong>消息 ${i+1}:</strong> ${escapeHTML(m)}</div>`).join('');
+    output.className = 'output-area has-content';
+  }
+
+  const totalZW = allZW.length;
+  const payloadZW = allZW.replace(/\u2060/g, '').length;
+  stats.innerHTML = `
+    <div class="stat">
+      <span class="stat-dot hidden"></span>
+      检测到零宽字符：<span class="stat-value">${totalZW}</span> 个
+    </div>
+    <div class="stat">
+      📦
+      有效荷载字符：<span class="stat-value">${payloadZW}</span> 个
+    </div>
+    <div class="stat">
+      ✉️
+      提取消息数：<span class="stat-value">${messages.length}</span>
+    </div>
+  `;
+
+  resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// === Real-time detection on decrypt panel ===
+document.addEventListener('DOMContentLoaded', () => {
+  const cipherInput = document.getElementById('cipher-text');
+  const badge = document.getElementById('hidden-badge');
+
+  cipherInput.addEventListener('input', () => {
+    const zw = extractZW(cipherInput.value);
+    badge.style.display = zw ? 'inline-flex' : 'none';
+  });
+});
+
+// === Tab switching ===
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.textContent.includes(tab === 'encrypt' ? '加密' : '解密')) {
+      t.classList.add('active');
+    }
+  });
+  document.getElementById('panel-encrypt').style.display = tab === 'encrypt' ? 'block' : 'none';
+  document.getElementById('panel-decrypt').style.display = tab === 'decrypt' ? 'block' : 'none';
+}
+
+// === Copy ===
+function copyResult(targetId) {
+  const el = document.getElementById(targetId);
+  const text = el.textContent;
+  if (!text || el.querySelector('.output-placeholder')) {
+    showToast('没有可复制的内容');
+    return;
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('✅ 已复制到剪贴板');
+  }).catch(() => {
+    showToast('复制失败，请手动选择复制');
+  });
+}
+
+// === Clear ===
+function clearEncrypt() {
+  document.getElementById('carrier-text').value = '';
+  document.getElementById('secret-message').value = '';
+  document.getElementById('encrypt-result-card').style.display = 'none';
+}
+
+function clearDecrypt() {
+  document.getElementById('cipher-text').value = '';
+  document.getElementById('decrypt-result-card').style.display = 'none';
+  document.getElementById('hidden-badge').style.display = 'none';
+}
+
+// === Demo data ===
+function demoEncrypt() {
+  document.getElementById('carrier-text').value = '据气象台最新预报，未来三天全市以晴好天气为主，气温稳步回升，最高温度将达到28摄氏度，适合户外活动和出行。';
+  document.getElementById('secret-message').value = '后天下午三点老地方见面，带上那份文件。暗号照旧。';
+  showToast('已填入演示数据，点击"加密并隐藏"查看效果');
+}
+
+// === Toast ===
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// === HTML escape ===
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
